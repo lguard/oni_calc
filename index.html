@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Example</title>
+         <meta charset="UTF-8">
+    </head>
+    <body>
+                <div class="wrapper">
+                    <div class="gr">
+                        <button onclick="black_white()">Toggle white mode</button>
+                        <div class="wrapper2" id="current_selection">
+                        </div>
+                    </div>
+                    <div class="gl">
+                        <button onclick="add_unit()">Add unit</button>
+                        <button onclick="scale()">scale</button>
+                        <select id="unit" name="unit" multiple>
+                            <option >arbor_tree_domestic</option>
+                            <option >arbor_tree_wild</option>
+                            <option >ethanol_distiller</option>
+                            <option >petroleum_generator</option>
+                            <option >wood_burner</option>
+                        </select>
+                    </div>
+                </div>
+                
+    </body>
+    <style>
+body {
+    background-color: black;
+    color: white;
+}
+
+.wrapper {
+  display: grid;
+  grid-template-columns: 40% 60%;
+}
+
+.wrapper2 {
+  display: grid;
+  grid-template-columns: 40% 10%;
+}
+
+.gr {
+    grid-column:1;
+}
+.gl {
+    grid-column:2;
+}
+
+.number_scroll {
+    padding-right:50;
+    width:50px;
+}
+
+.white-mode {
+    background-color: white;
+    color: black;
+}
+    </style>
+    <script>
+        var current_selection_number = {
+        }
+        var current_selection = {
+        }
+        var oni_data = {
+            "arbor_tree_domestic": {
+                "lumber": (300000*5)/4.5/600,
+                "polluted_water": -70000/600,
+                "dirt": -10000/600,
+            },
+            "arbor_tree_wild": {
+                "lumber": (300000*5)/18/600,
+            },
+            "ethanol_distiller": {
+                "watt": -240,
+                "lumber": -1000,
+                "ethanol": 500,
+                "polluted_dirt": 333.33,
+                "carbon_dioxide": 166.67,
+            },
+            "wood_burner": {
+                "watt": 300,
+                "lumber": -1200,
+                "carbon_dioxide": 170,
+            },
+            "petroleum_generator": {
+                "watt": 2000,
+                "ethanol": -2000,
+                "polluted_water": 750,
+                "carbon_dioxide": 500,
+            }
+        }
+        function inc_unit(args) {
+            console.log(args.target.id)
+            console.log(args.target.value)
+            current_selection_number[args.target.id] = parseFloat(args.target.value)
+            calc_unit()
+            display_selection()
+        }
+        function display_selection() {
+            var text = ''
+            for (const [key, value] of Object.entries(current_selection)) {
+                text += `<p>${key}:${value.toFixed(4)}<p><br>`
+            }
+            text += `<br><br>`
+            for (const [key, value] of Object.entries(current_selection_number)) {
+                text += `<p class="gg">${key}:<p><input class="gl number_scroll" id=${key} type="number" value=${value} min="0" step="0.1"><br>`
+            }
+            document.getElementById("current_selection").innerHTML = text
+            var class_name = document.getElementsByClassName("number_scroll")
+            for (var i = 0 ; i < class_name.length; i++) {
+                class_name[i].addEventListener('change', inc_unit)
+            }
+        }
+        function add(obj, key, value) {
+            if( key in obj) {
+                obj[key] += value
+            }
+            else {
+                obj[key] = value
+            }
+        }
+        function calc_unit() {
+            current_selection = {}
+            for (const [name, factor] of Object.entries(current_selection_number)) {
+                for (const [res, value] of Object.entries(oni_data[name])) {
+                    add(current_selection, res, value * factor)
+                }
+            }
+        }
+        function add_unit() {
+            var select = document.getElementById('unit');
+            name = select.options[select.selectedIndex].text;
+            add(current_selection_number, name, 1)
+            calc_unit()
+            display_selection()
+        }
+        function black_white() {
+            var element = document.body;
+            element.classList.toggle("white-mode");
+        }
+        function scale(unit, res) {
+            unit = 'ethanol_distiller'
+            current_selection_number[unit] = 0
+            calc_unit()
+            current_selection_number[unit] = -current_selection['lumber'] / oni_data[unit]['lumber']
+            calc_unit()
+            display_selection()
+        }
+    </script>
+</html>
